@@ -91,18 +91,34 @@ function CarbonCalculator() {
     return total;
   };
 
+  const saveToLocalStorage = (calculationData) => {
+    const existingData = JSON.parse(localStorage.getItem('carbonFootprintHistory') || '[]');
+    const newEntry = {
+      id: Date.now(),
+      date: new Date().toISOString().split('T')[0],
+      ...calculationData,
+      notes: `Calculation on ${new Date().toLocaleDateString()}`
+    };
+    
+    existingData.unshift(newEntry); // Add to beginning of array
+    localStorage.setItem('carbonFootprintHistory', JSON.stringify(existingData));
+  };
+
   const handleCalculate = () => {
     const transportEmissions = calculateTransport();
     const energyEmissions = calculateEnergy();
     const lifestyleEmissions = calculateLifestyle();
     const totalEmissions = transportEmissions + energyEmissions + lifestyleEmissions;
 
-    setResults({
+    const calculationResults = {
       transport: transportEmissions,
       energy: energyEmissions,
       lifestyle: lifestyleEmissions,
       total: totalEmissions
-    });
+    };
+
+    setResults(calculationResults);
+    saveToLocalStorage(calculationResults);
   };
 
   const handleInputChange = (category, field, value) => {
