@@ -1,6 +1,4 @@
 import 'dotenv/config';
 
-const ENV = process.env;
-
-export const DATABASE_URL = ENV.DATABASE_URL;
-export const JWT_SECRETE = ENV.JWT_SECRETE;
+export const DATABASE_URL = process.env.DATABASE_URL;
+export const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;

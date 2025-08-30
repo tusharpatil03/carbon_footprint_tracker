@@ -1,17 +1,25 @@
-import jwt from "jsonwebtoken";
+import jwt from 'jsonwebtoken';
+import { ACCESS_TOKEN_SECRET } from '../globals';
 
-export interface TokenPayload {
-    email: string;
-    id: string;
+export interface InterfaceAccessTokenPayload {
+  userId: string;
+  email: string;
 }
-
-export const generateToken = (input: TokenPayload) => {
-    return jwt.sign({
-        data: input,
+export const generateAccessToken = (
+  payload: InterfaceAccessTokenPayload,
+): string => {
+  const token: string = jwt.sign(
+    {
+      data: {
+        email: payload.email,
+        userId: payload.userId,
+      },
     },
-        "sij oeifoij fofij f",
-        {
-            expiresIn: 60 * 60,
-        }
-    );
-}
+    ACCESS_TOKEN_SECRET as string,
+    {
+      expiresIn: 24 * 60 * 60,
+    },
+  );
+  return token;
+};
+

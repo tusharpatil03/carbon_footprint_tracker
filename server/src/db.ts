@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 import { DATABASE_URL } from './globals';
-import { checkReplicaSet } from './utils/checkReplicaSet';
 
 let session: mongoose.ClientSession;
 
@@ -11,17 +10,12 @@ export const connect = async (dbName = 'ecom') => {
 
     try {
         await mongoose.connect(DATABASE_URL as string, { dbName });
-        const isReplicaSet = await checkReplicaSet();
-        if (isReplicaSet) {
-            console.log('Session started --> Connected to a replica set!');
-            session = await mongoose.startSession();
-        } else {
-            console.log('Session not started --> Not Connected to a replica set!');
-        }
     } catch (e: unknown) {
+        // Propagate error to caller so the app can decide whether to start
         if (e instanceof Error) {
-            console.log(e.message, e);
+            console.error('Mongo connect error:', e.message);
         }
+        throw e;
     }
 };
 
@@ -30,7 +24,6 @@ export const disconnect = async (): Promise<void> => {
         console.warn('No Active Database connection');
         return;
     }
-    session?.endSession();
     await mongoose.connection.close();
 };
 
