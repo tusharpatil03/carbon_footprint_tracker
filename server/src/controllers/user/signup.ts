@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import {  User } from '../../models/User';
+import { User } from '../../models/User';
 import bcrypt from 'bcrypt';
 import HandleError from '../../utils/Error/error';
 import {
@@ -59,6 +59,7 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
     res.cookie("token", accessToken, { secure: true, httpOnly: true });
 
     res.status(200).json({
-        message: "signup successful"
+        message: "signup successful",
+        accessToken: accessToken
     })
 };
