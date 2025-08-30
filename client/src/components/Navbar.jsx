@@ -1,6 +1,11 @@
 import { useState } from 'react';
 
-function Navbar({ onPageChange, currentPage }) {
+function Navbar({ onPageChange, currentPage, onLogout }) {
+  const [currentUser] = useState(() => {
+    const user = localStorage.getItem('currentUser');
+    return user ? JSON.parse(user) : null;
+  });
+
   const handleNavClick = (page) => {
     onPageChange(page);
   };
@@ -87,15 +92,27 @@ function Navbar({ onPageChange, currentPage }) {
           </ul>
 
           {/* Action Buttons */}
-          <div className="d-flex gap-2">
+          <div className="d-flex gap-2 align-items-center">
             <button className="btn btn-light btn-sm fw-semibold">
               <i className="bi bi-plus-circle me-1"></i>
               Add Activity
             </button>
-            <button className="btn btn-outline-light btn-sm">
-              <i className="bi bi-person-circle me-1"></i>
-              Profile
-            </button>
+            <div className="vr text-white opacity-25 mx-2"></div>
+            {currentUser && (
+              <div className="d-flex align-items-center">
+                <span className="text-white me-3">
+                  <i className="bi bi-person-circle me-2"></i>
+                  {currentUser.name}
+                </span>
+                <button 
+                  className="btn btn-outline-light btn-sm"
+                  onClick={onLogout}
+                >
+                  <i className="bi bi-box-arrow-right me-1"></i>
+                  Logout
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
