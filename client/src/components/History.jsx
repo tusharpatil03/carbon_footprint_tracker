@@ -1,58 +1,22 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './History.css';
 
 function History() {
-  // Mock data for demonstration - in a real app, this would come from a database
-  const [historyData] = useState([
-    {
-      id: 1,
-      date: '2024-01-15',
-      transport: 850,
-      energy: 420,
-      lifestyle: 600,
-      total: 1870,
-      notes: 'Started tracking carbon footprint'
-    },
-    {
-      id: 2,
-      date: '2024-02-15',
-      transport: 780,
-      energy: 380,
-      lifestyle: 550,
-      total: 1710,
-      notes: 'Reduced car usage, switched to public transport'
-    },
-    {
-      id: 3,
-      date: '2024-03-15',
-      transport: 720,
-      energy: 350,
-      lifestyle: 500,
-      total: 1570,
-      notes: 'Installed LED lights, reduced meat consumption'
-    },
-    {
-      id: 4,
-      date: '2024-04-15',
-      transport: 680,
-      energy: 320,
-      lifestyle: 480,
-      total: 1480,
-      notes: 'Started composting, bought local produce'
-    },
-    {
-      id: 5,
-      date: '2024-05-15',
-      transport: 650,
-      energy: 300,
-      lifestyle: 450,
-      total: 1400,
-      notes: 'Switched to renewable energy provider'
-    }
-  ]);
-
-  const [selectedPeriod, setSelectedPeriod] = useState('6months');
+  const [historyData, setHistoryData] = useState([]);
+  const [selectedPeriod, setSelectedPeriod] = useState('all');
   const [selectedEntry, setSelectedEntry] = useState(null);
+  const [editingEntry, setEditingEntry] = useState(null);
+  const [editNotes, setEditNotes] = useState('');
+
+  // Load data from localStorage on component mount
+  useEffect(() => {
+    loadHistoryData();
+  }, []);
+
+  const loadHistoryData = () => {
+    const data = JSON.parse(localStorage.getItem('carbonFootprintHistory') || '[]');
+    setHistoryData(data);
+  };
 
   const getEmissionsLevel = (total) => {
     if (total < 2000) return { level: 'Low', color: 'success' };
@@ -68,6 +32,7 @@ function History() {
   };
 
   const getAverageEmissions = () => {
+    if (historyData.length === 0) return 0;
     const total = historyData.reduce((sum, entry) => sum + entry.total, 0);
     return (total / historyData.length).toFixed(1);
   };
@@ -79,6 +44,78 @@ function History() {
       day: 'numeric'
     });
   };
+
+  const filterDataByPeriod = () => {
+    if (selectedPeriod === 'all') return historyData;
+    
+    const now = new Date();
+    const filterDate = new Date();
+    
+    switch (selectedPeriod) {
+      case '3months':
+        filterDate.setMonth(now.getMonth() - 3);
+        break;
+      case '6months':
+        filterDate.setMonth(now.getMonth() - 6);
+        break;
+      case '1year':
+        filterDate.setFullYear(now.getFullYear() - 1);
+        break;
+      default:
+        return historyData;
+    }
+    
+    return historyData.filter(entry => new Date(entry.date) >= filterDate);
+  };
+
+  const handleEdit = (entry) => {
+    setEditingEntry(entry);
+    setEditNotes(entry.notes || '');
+  };
+
+  const handleSaveEdit = () => {
+    if (!editingEntry) return;
+    
+    const updatedData = historyData.map(entry => 
+      entry.id === editingEntry.id 
+        ? { ...entry, notes: editNotes }
+        : entry
+    );
+    
+    localStorage.setItem('carbonFootprintHistory', JSON.stringify(updatedData));
+    setHistoryData(updatedData);
+    setEditingEntry(null);
+    setEditNotes('');
+  };
+
+  const handleCancelEdit = () => {
+    setEditingEntry(null);
+    setEditNotes('');
+  };
+
+  const handleDelete = (entryId) => {
+    if (window.confirm('Are you sure you want to delete this entry?')) {
+      const updatedData = historyData.filter(entry => entry.id !== entryId);
+      localStorage.setItem('carbonFootprintHistory', JSON.stringify(updatedData));
+      setHistoryData(updatedData);
+      if (selectedEntry && selectedEntry.id === entryId) {
+        setSelectedEntry(null);
+      }
+    }
+  };
+
+  const handleExport = () => {
+    const dataStr = JSON.stringify(historyData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `carbon-footprint-history-${new Date().toISOString().split('T')[0]}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const filteredData = filterDataByPeriod();
 
   return (
     <div className="container mt-4">
@@ -98,7 +135,7 @@ function History() {
                   <div className="card bg-primary text-white">
                     <div className="card-body text-center">
                       <h5 className="card-title">Current Footprint</h5>
-                      <h3>{historyData[historyData.length - 1]?.total || 0} kg CO₂</h3>
+                      <h3>{historyData.length > 0 ? historyData[0].total.toFixed(1) : 0} kg CO₂</h3>
                       <small>Latest measurement</small>
                     </div>
                   </div>
@@ -125,7 +162,7 @@ function History() {
                   <div className="card bg-warning text-white">
                     <div className="card-body text-center">
                       <h5 className="card-title">Best Month</h5>
-                      <h3>{Math.min(...historyData.map(h => h.total))} kg CO₂</h3>
+                      <h3>{historyData.length > 0 ? Math.min(...historyData.map(h => h.total)).toFixed(1) : 0} kg CO₂</h3>
                       <small>Lowest footprint</small>
                     </div>
                   </div>
@@ -148,7 +185,11 @@ function History() {
                   </select>
                 </div>
                 <div className="col-md-6 d-flex align-items-end">
-                  <button className="btn btn-outline-success">
+                  <button 
+                    className="btn btn-outline-success"
+                    onClick={handleExport}
+                    disabled={historyData.length === 0}
+                  >
                     <i className="bi bi-download me-2"></i>
                     Export Data
                   </button>
@@ -171,7 +212,7 @@ function History() {
                     </tr>
                   </thead>
                   <tbody>
-                    {historyData.map((entry) => (
+                    {filteredData.map((entry) => (
                       <tr 
                         key={entry.id}
                         className={selectedEntry?.id === entry.id ? 'table-active' : ''}
@@ -182,17 +223,17 @@ function History() {
                           <strong>{formatDate(entry.date)}</strong>
                         </td>
                         <td>
-                          <span className="text-primary">{entry.transport} kg CO₂</span>
+                          <span className="text-primary">{entry.transport.toFixed(1)} kg CO₂</span>
                         </td>
                         <td>
-                          <span className="text-warning">{entry.energy} kg CO₂</span>
+                          <span className="text-warning">{entry.energy.toFixed(1)} kg CO₂</span>
                         </td>
                         <td>
-                          <span className="text-info">{entry.lifestyle} kg CO₂</span>
+                          <span className="text-info">{entry.lifestyle.toFixed(1)} kg CO₂</span>
                         </td>
                         <td>
                           <strong className={`text-${getEmissionsLevel(entry.total).color}`}>
-                            {entry.total} kg CO₂
+                            {entry.total.toFixed(1)} kg CO₂
                           </strong>
                         </td>
                         <td>
@@ -205,13 +246,31 @@ function History() {
                         </td>
                         <td>
                           <div className="btn-group btn-group-sm">
-                            <button className="btn btn-outline-primary">
+                            <button 
+                              className="btn btn-outline-primary"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedEntry(entry);
+                              }}
+                            >
                               <i className="bi bi-eye"></i>
                             </button>
-                            <button className="btn btn-outline-warning">
+                            <button 
+                              className="btn btn-outline-warning"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEdit(entry);
+                              }}
+                            >
                               <i className="bi bi-pencil"></i>
                             </button>
-                            <button className="btn btn-outline-danger">
+                            <button 
+                              className="btn btn-outline-danger"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDelete(entry.id);
+                              }}
+                            >
                               <i className="bi bi-trash"></i>
                             </button>
                           </div>
@@ -221,6 +280,39 @@ function History() {
                   </tbody>
                 </table>
               </div>
+
+              {/* Edit Modal */}
+              {editingEntry && (
+                <div className="modal fade show" style={{ display: 'block' }} tabIndex="-1">
+                  <div className="modal-dialog">
+                    <div className="modal-content">
+                      <div className="modal-header">
+                        <h5 className="modal-title">Edit Notes</h5>
+                        <button type="button" className="btn-close" onClick={handleCancelEdit}></button>
+                      </div>
+                      <div className="modal-body">
+                        <label className="form-label">Notes</label>
+                        <textarea
+                          className="form-control"
+                          rows="3"
+                          value={editNotes}
+                          onChange={(e) => setEditNotes(e.target.value)}
+                          placeholder="Add notes about this calculation..."
+                        ></textarea>
+                      </div>
+                      <div className="modal-footer">
+                        <button type="button" className="btn btn-secondary" onClick={handleCancelEdit}>
+                          Cancel
+                        </button>
+                        <button type="button" className="btn btn-primary" onClick={handleSaveEdit}>
+                          Save Changes
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="modal-backdrop fade show"></div>
+                </div>
+              )}
 
               {/* Detailed View */}
               {selectedEntry && (
@@ -241,7 +333,7 @@ function History() {
                               className="progress-bar bg-primary" 
                               style={{ width: `${(selectedEntry.transport / selectedEntry.total) * 100}%` }}
                             >
-                              Transport: {selectedEntry.transport} kg CO₂
+                              Transport: {selectedEntry.transport.toFixed(1)} kg CO₂
                             </div>
                           </div>
                           <div className="progress mb-3" style={{ height: '25px' }}>
@@ -249,7 +341,7 @@ function History() {
                               className="progress-bar bg-warning" 
                               style={{ width: `${(selectedEntry.energy / selectedEntry.total) * 100}%` }}
                             >
-                              Energy: {selectedEntry.energy} kg CO₂
+                              Energy: {selectedEntry.energy.toFixed(1)} kg CO₂
                             </div>
                           </div>
                           <div className="progress mb-3" style={{ height: '25px' }}>
@@ -257,7 +349,7 @@ function History() {
                               className="progress-bar bg-info" 
                               style={{ width: `${(selectedEntry.lifestyle / selectedEntry.total) * 100}%` }}
                             >
-                              Lifestyle: {selectedEntry.lifestyle} kg CO₂
+                              Lifestyle: {selectedEntry.lifestyle.toFixed(1)} kg CO₂
                             </div>
                           </div>
                         </div>
@@ -277,15 +369,22 @@ function History() {
               )}
 
               {/* Empty State */}
-              {historyData.length === 0 && (
+              {filteredData.length === 0 && (
                 <div className="text-center py-5">
                   <i className="bi bi-clock-history fs-1 text-muted mb-3"></i>
                   <h4>No History Available</h4>
-                  <p className="text-muted">Start tracking your carbon footprint to see your history here.</p>
-                  <button className="btn btn-success">
-                    <i className="bi bi-calculator me-2"></i>
-                    Calculate Your Footprint
-                  </button>
+                  <p className="text-muted">
+                    {historyData.length === 0 
+                      ? "Start tracking your carbon footprint to see your history here."
+                      : "No data found for the selected time period."
+                    }
+                  </p>
+                  {historyData.length === 0 && (
+                    <button className="btn btn-success">
+                      <i className="bi bi-calculator me-2"></i>
+                      Calculate Your Footprint
+                    </button>
+                  )}
                 </div>
               )}
             </div>

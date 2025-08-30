@@ -1,36 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './Dashboard.css';
 
 function Dashboard({ onNavigate }) {
-  const [recentCalculations] = useState([
-    {
-      id: 1,
-      date: '2024-05-15',
-      total: 1400,
-      transport: 650,
-      energy: 300,
-      lifestyle: 450,
-      level: 'Low'
-    },
-    {
-      id: 2,
-      date: '2024-04-15',
-      total: 1480,
-      transport: 680,
-      energy: 320,
-      lifestyle: 480,
-      level: 'Low'
-    },
-    {
-      id: 3,
-      date: '2024-03-15',
-      total: 1570,
-      transport: 720,
-      energy: 350,
-      lifestyle: 500,
-      level: 'Medium'
-    }
-  ]);
+  const [historyData, setHistoryData] = useState([]);
+
+  // Load data from localStorage on component mount
+  useEffect(() => {
+    loadHistoryData();
+  }, []);
+
+  const loadHistoryData = () => {
+    const data = JSON.parse(localStorage.getItem('carbonFootprintHistory') || '[]');
+    setHistoryData(data);
+  };
 
   const getEmissionsLevel = (total) => {
     if (total < 2000) return { level: 'Low', color: 'success' };
@@ -44,6 +26,28 @@ function Dashboard({ onNavigate }) {
       month: 'short',
       day: 'numeric'
     });
+  };
+
+  const calculateProgress = () => {
+    if (historyData.length < 2) return 0;
+    const first = historyData[0].total;
+    const latest = historyData[historyData.length - 1].total;
+    return ((first - latest) / first * 100).toFixed(1);
+  };
+
+  const getAverageEmissions = () => {
+    if (historyData.length === 0) return 0;
+    const total = historyData.reduce((sum, entry) => sum + entry.total, 0);
+    return (total / historyData.length).toFixed(1);
+  };
+
+  const getBestMonth = () => {
+    if (historyData.length === 0) return 0;
+    return Math.min(...historyData.map(h => h.total)).toFixed(1);
+  };
+
+  const getRecentCalculations = () => {
+    return historyData.slice(0, 3); // Get last 3 calculations
   };
 
   return (
@@ -85,7 +89,7 @@ function Dashboard({ onNavigate }) {
               <div className="card bg-primary text-white text-center">
                 <div className="card-body">
                   <i className="bi bi-graph-down fs-1 mb-2"></i>
-                  <h4>25%</h4>
+                  <h4>{calculateProgress()}%</h4>
                   <p className="mb-0">Reduction Achieved</p>
                 </div>
               </div>
@@ -94,7 +98,7 @@ function Dashboard({ onNavigate }) {
               <div className="card bg-success text-white text-center">
                 <div className="card-body">
                   <i className="bi bi-calendar-check fs-1 mb-2"></i>
-                  <h4>5</h4>
+                  <h4>{historyData.length}</h4>
                   <p className="mb-0">Calculations Done</p>
                 </div>
               </div>
@@ -103,8 +107,8 @@ function Dashboard({ onNavigate }) {
               <div className="card bg-info text-white text-center">
                 <div className="card-body">
                   <i className="bi bi-target fs-1 mb-2"></i>
-                  <h4>1200</h4>
-                  <p className="mb-0">Target (kg CO₂)</p>
+                  <h4>{getAverageEmissions()}</h4>
+                  <p className="mb-0">Average (kg CO₂)</p>
                 </div>
               </div>
             </div>
@@ -112,8 +116,8 @@ function Dashboard({ onNavigate }) {
               <div className="card bg-warning text-white text-center">
                 <div className="card-body">
                   <i className="bi bi-trophy fs-1 mb-2"></i>
-                  <h4>3</h4>
-                  <p className="mb-0">Goals Met</p>
+                  <h4>{getBestMonth()}</h4>
+                  <p className="mb-0">Best Month (kg CO₂)</p>
                 </div>
               </div>
             </div>
@@ -130,32 +134,50 @@ function Dashboard({ onNavigate }) {
                   </h5>
                 </div>
                 <div className="card-body">
-                  {recentCalculations.map((calc) => (
-                    <div key={calc.id} className="calculation-item mb-3 p-3 border rounded">
-                      <div className="row align-items-center">
-                        <div className="col-md-3">
-                          <strong>{formatDate(calc.date)}</strong>
-                        </div>
-                        <div className="col-md-3">
-                          <span className="text-muted">Total:</span>
-                          <strong className={`text-${getEmissionsLevel(calc.total).color}`}>
-                            {calc.total} kg CO₂
-                          </strong>
-                        </div>
-                        <div className="col-md-3">
-                          <span className={`badge bg-${getEmissionsLevel(calc.total).color}`}>
-                            {getEmissionsLevel(calc.total).level} Impact
-                          </span>
-                        </div>
-                        <div className="col-md-3 text-end">
-                          <button className="btn btn-sm btn-outline-primary">
-                            <i className="bi bi-eye me-1"></i>
-                            View Details
-                          </button>
+                  {getRecentCalculations().length > 0 ? (
+                    getRecentCalculations().map((calc) => (
+                      <div key={calc.id} className="calculation-item mb-3 p-3 border rounded">
+                        <div className="row align-items-center">
+                          <div className="col-md-3">
+                            <strong>{formatDate(calc.date)}</strong>
+                          </div>
+                          <div className="col-md-3">
+                            <span className="text-muted">Total:</span>
+                            <strong className={`text-${getEmissionsLevel(calc.total).color}`}>
+                              {calc.total.toFixed(1)} kg CO₂
+                            </strong>
+                          </div>
+                          <div className="col-md-3">
+                            <span className={`badge bg-${getEmissionsLevel(calc.total).color}`}>
+                              {getEmissionsLevel(calc.total).level} Impact
+                            </span>
+                          </div>
+                          <div className="col-md-3 text-end">
+                            <button 
+                              className="btn btn-sm btn-outline-primary"
+                              onClick={() => onNavigate('history')}
+                            >
+                              <i className="bi bi-eye me-1"></i>
+                              View Details
+                            </button>
+                          </div>
                         </div>
                       </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-4">
+                      <i className="bi bi-calculator fs-1 text-muted mb-3"></i>
+                      <h6>No calculations yet</h6>
+                      <p className="text-muted">Start by calculating your carbon footprint</p>
+                      <button 
+                        className="btn btn-success"
+                        onClick={() => onNavigate('calculator')}
+                      >
+                        <i className="bi bi-calculator me-2"></i>
+                        Calculate Now
+                      </button>
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
             </div>
@@ -200,15 +222,45 @@ function Dashboard({ onNavigate }) {
                   </h5>
                 </div>
                 <div className="card-body text-center">
-                  <div className="progress mb-3" style={{ height: '20px' }}>
-                    <div className="progress-bar bg-success" style={{ width: '75%' }}></div>
-                  </div>
-                  <h6>Reduce to 1200 kg CO₂/month</h6>
-                  <p className="text-muted">You're 75% of the way there!</p>
-                  <button className="btn btn-success btn-sm">
-                    <i className="bi bi-plus-circle me-1"></i>
-                    Set New Goal
-                  </button>
+                  {historyData.length > 0 ? (
+                    <>
+                      <div className="progress mb-3" style={{ height: '20px' }}>
+                        <div 
+                          className="progress-bar bg-success" 
+                          style={{ width: `${Math.min(calculateProgress(), 100)}%` }}
+                        ></div>
+                      </div>
+                      <h6>Reduce your carbon footprint</h6>
+                      <p className="text-muted">
+                        {calculateProgress() > 0 
+                          ? `You've reduced by ${calculateProgress()}% so far!`
+                          : "Start tracking to see your progress"
+                        }
+                      </p>
+                      <button 
+                        className="btn btn-success btn-sm"
+                        onClick={() => onNavigate('calculator')}
+                      >
+                        <i className="bi bi-plus-circle me-1"></i>
+                        Calculate Again
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <div className="progress mb-3" style={{ height: '20px' }}>
+                        <div className="progress-bar bg-success" style={{ width: '0%' }}></div>
+                      </div>
+                      <h6>Set your first goal</h6>
+                      <p className="text-muted">Start by calculating your current footprint</p>
+                      <button 
+                        className="btn btn-success btn-sm"
+                        onClick={() => onNavigate('calculator')}
+                      >
+                        <i className="bi bi-calculator me-1"></i>
+                        Start Tracking
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
