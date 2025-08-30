@@ -1,7 +1,27 @@
 import { useState } from 'react';
 import './CarbonCalculator.css';
+import { GoogleGenerativeAI } from '@google/generative-ai'
+const genAI = new GoogleGenerativeAI("AIzaSyAqqjcgiY0Y-sKKtH2L8g-cTidw3lKk9mM");
 
 function CarbonCalculator() {
+  const [aiTips, setAiTips] = useState([]);
+  const generateAITips = async (results) => {
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const prompt = `Based on these carbon footprint results:
+  Transport: ${results.transport.toFixed(1)} kg CO₂
+  Energy: ${results.energy.toFixed(1)} kg CO₂
+  Lifestyle: ${results.lifestyle.toFixed(1)} kg CO₂
+  Total: ${results.total.toFixed(1)} kg CO₂
+
+  Suggest 4 practical tips to reduce carbon footprint, in short bullet points.`;
+
+    const result = await model.generateContent(prompt);
+    const text = result.response.text();
+
+    // Split into bullet points (basic split by newline/dash)
+    setAiTips(text.split("\n").filter(line => line.trim() !== ""));
+  };
+
   const [activeTab, setActiveTab] = useState('transport');
   const [results, setResults] = useState({});
   const [formData, setFormData] = useState({
@@ -99,7 +119,7 @@ function CarbonCalculator() {
       ...calculationData,
       notes: `Calculation on ${new Date().toLocaleDateString()}`
     };
-    
+
     existingData.unshift(newEntry); // Add to beginning of array
     localStorage.setItem('carbonFootprintHistory', JSON.stringify(existingData));
   };
@@ -118,6 +138,7 @@ function CarbonCalculator() {
     };
 
     setResults(calculationResults);
+    generateAITips(calculationResults);
     saveToLocalStorage(calculationResults);
   };
 
@@ -142,7 +163,7 @@ function CarbonCalculator() {
       <div className="row">
         <div className="col-lg-8 mx-auto">
           <div className="card shadow">
-            <div className="card-header bg-success text-white">
+           <div className="calculator-header mb-0">
               <h3 className="mb-0">
                 <i className="bi bi-calculator me-2"></i>
                 Carbon Footprint Calculator
@@ -152,7 +173,7 @@ function CarbonCalculator() {
               {/* Navigation Tabs */}
               <ul className="nav nav-tabs mb-4" id="calculatorTabs">
                 <li className="nav-item">
-                  <button 
+                  <button
                     className={`nav-link ${activeTab === 'transport' ? 'active' : ''}`}
                     onClick={() => setActiveTab('transport')}
                   >
@@ -161,7 +182,7 @@ function CarbonCalculator() {
                   </button>
                 </li>
                 <li className="nav-item">
-                  <button 
+                  <button
                     className={`nav-link ${activeTab === 'energy' ? 'active' : ''}`}
                     onClick={() => setActiveTab('energy')}
                   >
@@ -170,7 +191,7 @@ function CarbonCalculator() {
                   </button>
                 </li>
                 <li className="nav-item">
-                  <button 
+                  <button
                     className={`nav-link ${activeTab === 'lifestyle' ? 'active' : ''}`}
                     onClick={() => setActiveTab('lifestyle')}
                   >
@@ -317,7 +338,7 @@ function CarbonCalculator() {
 
               {/* Calculate Button */}
               <div className="text-center mt-4">
-                <button 
+                <button
                   className="btn btn-success btn-lg px-5"
                   onClick={handleCalculate}
                 >
@@ -335,7 +356,7 @@ function CarbonCalculator() {
                         <i className="bi bi-graph-up me-2"></i>
                         Your Carbon Footprint Results
                       </h5>
-                      
+
                       <div className="row text-center">
                         <div className="col-md-3">
                           <div className="border-end">
@@ -370,13 +391,18 @@ function CarbonCalculator() {
                       </div>
 
                       <div className="mt-3 p-3 bg-white rounded">
-                        <h6>Tips to Reduce Your Footprint:</h6>
-                        <ul className="list-unstyled">
-                          <li><i className="bi bi-check-circle text-success me-2"></i>Use public transport or carpool</li>
-                          <li><i className="bi bi-check-circle text-success me-2"></i>Switch to renewable energy sources</li>
-                          <li><i className="bi bi-check-circle text-success me-2"></i>Reduce meat consumption</li>
-                          <li><i className="bi bi-check-circle text-success me-2"></i>Recycle and compost waste</li>
+                        <h6>AI Tips to Reduce Your Footprint:</h6>
+                        <ul className="list-group list-group-flush">
+                          {aiTips.map((tip, i) => (
+                            <li key={i} className="list-group-item border-0 d-flex align-items-start">
+                              <i className="bi bi-check-circle-fill text-success me-2"></i>
+                              <span dangerouslySetInnerHTML={{ __html: tip.replace(/\*/g, "") }} />
+                            </li>
+                          ))}
                         </ul>
+
+
+
                       </div>
                     </div>
                   </div>

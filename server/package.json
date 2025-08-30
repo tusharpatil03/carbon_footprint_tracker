@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/app.js",
-    "dev": "pnpm run build && pnpm run start"
+    "dev": "npm run build && npm run start"
   },
   "keywords": [],
   "author": "",
