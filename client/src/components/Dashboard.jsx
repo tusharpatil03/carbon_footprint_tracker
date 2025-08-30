@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Dashboard.css';
 
-function Dashboard({ onNavigate }) {
+function Dashboard() {
+  const navigate = useNavigate();
   const [historyData, setHistoryData] = useState([]);
 
   // Load data from localStorage on component mount
@@ -69,17 +71,17 @@ function Dashboard({ onNavigate }) {
               <p className="lead">
                 Track your carbon footprint and make sustainable choices for a better future.
               </p>
-              <div className="d-flex justify-content-center gap-3">
+                <div className="d-flex justify-content-center gap-3">
                 <button 
                   className="btn btn-success btn-lg"
-                  onClick={() => onNavigate('calculator')}
+                  onClick={() => navigate('/calculator')}
                 >
                   <i className="bi bi-calculator me-2"></i>
                   Calculate Footprint
                 </button>
                 <button 
                   className="btn btn-outline-success btn-lg"
-                  onClick={() => onNavigate('history')}
+                  onClick={() => navigate('/history')}
                 >
                   <i className="bi bi-clock-history me-2"></i>
                   View History
@@ -169,10 +171,10 @@ function Dashboard({ onNavigate }) {
                               {getEmissionsLevel(calc.total).level} Impact
                             </span>
                           </div>
-                          <div className="col-md-3 text-end">
+                            <div className="col-md-3 text-end">
                             <button 
                               className="btn btn-sm btn-outline-primary"
-                              onClick={() => onNavigate('history')}
+                              onClick={() => navigate('/history')}
                             >
                               <i className="bi bi-eye me-1"></i>
                               View Details
@@ -188,7 +190,7 @@ function Dashboard({ onNavigate }) {
                       <p className="text-muted">Start by calculating your carbon footprint</p>
                       <button 
                         className="btn btn-success"
-                        onClick={() => onNavigate('calculator')}
+                        onClick={() => navigate('/calculator')}
                       >
                         <i className="bi bi-calculator me-2"></i>
                         Calculate Now
@@ -256,7 +258,7 @@ function Dashboard({ onNavigate }) {
                       </p>
                       <button 
                         className="btn btn-success btn-sm"
-                        onClick={() => onNavigate('calculator')}
+                        onClick={() => navigate('/calculator')}
                       >
                         <i className="bi bi-plus-circle me-1"></i>
                         Calculate Again
@@ -271,7 +273,7 @@ function Dashboard({ onNavigate }) {
                       <p className="text-muted">Start by calculating your current footprint</p>
                       <button 
                         className="btn btn-success btn-sm"
-                        onClick={() => onNavigate('calculator')}
+                        onClick={() => navigate('/calculator')}
                       >
                         <i className="bi bi-calculator me-1"></i>
                         Start Tracking

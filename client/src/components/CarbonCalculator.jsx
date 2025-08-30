@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import axios from 'axios';
 import './CarbonCalculator.css';
 
 function CarbonCalculator() {
   const [activeTab, setActiveTab] = useState('transport');
-  const [results, setResults] = useState({});
   const [formData, setFormData] = useState({
     transport: {
       carDistance: '',
@@ -22,6 +22,9 @@ function CarbonCalculator() {
       shopping: 'medium'
     }
   });
+
+  const [results, setResults] = useState(null);
+  const [recommendations, setRecommendations] = useState('');
 
   // Carbon emission factors (kg CO2 per unit)
   const emissionFactors = {
@@ -99,7 +102,7 @@ function CarbonCalculator() {
       ...calculationData,
       notes: `Calculation on ${new Date().toLocaleDateString()}`
     };
-    
+
     existingData.unshift(newEntry); // Add to beginning of array
     localStorage.setItem('carbonFootprintHistory', JSON.stringify(existingData));
   };
@@ -119,6 +122,24 @@ function CarbonCalculator() {
 
     setResults(calculationResults);
     saveToLocalStorage(calculationResults);
+
+    // Send to server for personalized recommendations
+    sendForRecommendation({ inputs: formData, total: totalEmissions });
+  };
+
+  const sendForRecommendation = async (payload) => {
+    try {
+      const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+      const body = {
+        userId: currentUser?.id,
+        data: payload
+      };
+      const res = await axios.post('http://localhost:8000/user/recomendation', body, { withCredentials: true });
+      setRecommendations(res.data.recommendations || '');
+    } catch (err) {
+      console.error('Failed to fetch recommendations', err);
+      setRecommendations('Could not fetch personalized recommendations. Try again later.');
+    }
   };
 
   const handleInputChange = (category, field, value) => {
@@ -327,7 +348,7 @@ function CarbonCalculator() {
               </div>
 
               {/* Results */}
-              {results.total && (
+              {results && results.total && (
                 <div className="mt-4">
                   <div className="card bg-light">
                     <div className="card-body">
@@ -362,6 +383,13 @@ function CarbonCalculator() {
                           </h3>
                         </div>
                       </div>
+
+                      {recommendations && (
+                        <div className="recommendations mt-3 p-3 bg-white rounded">
+                          <h5>Personalized recommendations</h5>
+                          <p>{recommendations}</p>
+                        </div>
+                      )}
 
                       <div className="text-center mt-3">
                         <span className={`badge bg-${getEmissionsLevel(results.total).color} fs-6`}>

@@ -138,9 +138,20 @@
     font-size: 1rem;
   }
   
-  .d-flex.gap-3 {
-    flex-direction: column;
+  .d-flex.gap-3,
+  .d-flex.justify-content-center.gap-3 {
+    flex-direction: column !important;
     gap: 1rem !important;
+    align-items: stretch !important;
+  }
+
+  .btn-lg {
+    width: 100%;
+  }
+
+  .calculation-item .row {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 

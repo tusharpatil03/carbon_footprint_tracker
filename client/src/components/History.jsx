@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './History.css';
 
 function History() {
+  const navigate = useNavigate();
   const [historyData, setHistoryData] = useState([]);
   const [selectedPeriod, setSelectedPeriod] = useState('all');
   const [selectedEntry, setSelectedEntry] = useState(null);
@@ -380,7 +382,7 @@ function History() {
                     }
                   </p>
                   {historyData.length === 0 && (
-                    <button className="btn btn-success">
+                    <button className="btn btn-success" onClick={() => navigate('/calculator')}>
                       <i className="bi bi-calculator me-2"></i>
                       Calculate Your Footprint
                     </button>
