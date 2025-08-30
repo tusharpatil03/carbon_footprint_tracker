@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import axios from 'axios';
 import './Activities.css';
 
 function Activities() {
@@ -14,14 +16,32 @@ function Activities() {
   const [filterCategory, setFilterCategory] = useState('all');
   const [sortBy, setSortBy] = useState('date');
 
-  // Load activities from localStorage on component mount
-  useEffect(() => {
-    loadActivities();
-  }, []);
+  const location = useLocation();
 
-  const loadActivities = () => {
-    const data = JSON.parse(localStorage.getItem('userActivities') || '[]');
-    setActivities(data);
+  // Load activities from server on component mount
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('add') === 'true') setShowAddForm(true);
+    fetchActivities();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.search]);
+
+  const fetchActivities = async () => {
+    try {
+      const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+      if (!currentUser || !currentUser.id) {
+        // fallback to localStorage-stored activities
+        const data = JSON.parse(localStorage.getItem('userActivities') || '[]');
+        setActivities(data);
+        return;
+      }
+      const res = await axios.get(`http://localhost:8000/activity/${currentUser.id}`, { withCredentials: true });
+      setActivities(res.data.activities || []);
+    } catch (err) {
+      console.error('Failed to fetch activities, falling back to local', err);
+      const data = JSON.parse(localStorage.getItem('userActivities') || '[]');
+      setActivities(data);
+    }
   };
 
   const saveActivities = (data) => {
@@ -29,21 +49,50 @@ function Activities() {
     setActivities(data);
   };
 
-  const addActivity = () => {
+  const addActivity = async () => {
     if (!newActivity.name || !newActivity.carbonImpact) {
       alert('Please fill in all required fields');
       return;
     }
 
-    const activity = {
-      id: Date.now(),
-      ...newActivity,
+    const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+    const payload = {
+      userId: currentUser?.id,
+      name: newActivity.name,
+      category: newActivity.category,
       carbonImpact: parseFloat(newActivity.carbonImpact),
-      createdAt: new Date().toISOString()
+      date: newActivity.date,
+      notes: newActivity.notes,
     };
 
-    const updatedActivities = [activity, ...activities];
-    saveActivities(updatedActivities);
+    try {
+      if (currentUser && currentUser.id) {
+        await axios.post('http://localhost:8000/activity', payload, { withCredentials: true });
+        await fetchActivities();
+      } else {
+        // fallback local save
+        const activity = {
+          id: Date.now(),
+          ...newActivity,
+          carbonImpact: parseFloat(newActivity.carbonImpact),
+          createdAt: new Date().toISOString()
+        };
+
+        const updatedActivities = [activity, ...activities];
+        saveActivities(updatedActivities);
+      }
+    } catch (err) {
+      console.error('Failed to create activity on server, saved locally', err);
+      const activity = {
+        id: Date.now(),
+        ...newActivity,
+        carbonImpact: parseFloat(newActivity.carbonImpact),
+        createdAt: new Date().toISOString()
+      };
+
+      const updatedActivities = [activity, ...activities];
+      saveActivities(updatedActivities);
+    }
 
     // Reset form
     setNewActivity({

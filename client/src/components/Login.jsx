@@ -2,7 +2,10 @@ import { useState } from "react";
 import "./Auth.css";
 import axios from "axios";
 
+import { useNavigate } from 'react-router-dom';
+
 function Login({ onSwitchToSignup, onLoginSuccess }) {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -171,7 +174,7 @@ function Login({ onSwitchToSignup, onLoginSuccess }) {
                 </button>
 
                 <div className="text-center">
-                  <a href="#" className="text-decoration-none">
+                  <a href="#" className="text-decoration-none" onClick={(e) => e.preventDefault()}>
                     Forgot password?
                   </a>
                 </div>
@@ -182,7 +185,7 @@ function Login({ onSwitchToSignup, onLoginSuccess }) {
                 Don't have an account?{" "}
                 <button
                   className="btn btn-link text-decoration-none p-0"
-                  onClick={onSwitchToSignup}
+                  onClick={() => (onSwitchToSignup ? onSwitchToSignup() : navigate('/signup'))}
                 >
                   Sign up here
                 </button>

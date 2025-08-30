@@ -34,7 +34,17 @@
 }
 
 .card {
-  padding: 2em;
+  padding: 1.25rem;
+  border-radius: 12px;
+}
+
+@media (max-width: 768px) {
+  .navbar-brand .fs-4 {
+    font-size: 1rem;
+  }
+  .card {
+    padding: 0.9rem;
+  }
 }
 
 .read-the-docs {

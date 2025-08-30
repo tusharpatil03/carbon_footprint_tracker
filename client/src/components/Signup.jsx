@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Auth.css';
 import axios from 'axios';
 
 function Signup({ onSwitchToLogin, onSignupSuccess }) {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -177,8 +179,8 @@ function Signup({ onSwitchToLogin, onSignupSuccess }) {
                   <input type="checkbox" className="form-check-input" id="agreeTerms" required />
                   <label className="form-check-label" htmlFor="agreeTerms">
                     I agree to the{' '}
-                    <a href="#" className="text-decoration-none">Terms of Service</a> and{' '}
-                    <a href="#" className="text-decoration-none">Privacy Policy</a>
+                    <a href="#" className="text-decoration-none" onClick={(e) => e.preventDefault()}>Terms of Service</a> and{' '}
+                    <a href="#" className="text-decoration-none" onClick={(e) => e.preventDefault()}>Privacy Policy</a>
                   </label>
                 </div>
 
@@ -206,7 +208,7 @@ function Signup({ onSwitchToLogin, onSignupSuccess }) {
                 Already have an account?{' '}
                 <button
                   className="btn btn-link text-decoration-none p-0"
-                  onClick={onSwitchToLogin}
+                  onClick={() => (onSwitchToLogin ? onSwitchToLogin() : navigate('/login'))}
                 >
                   Sign in here
                 </button>

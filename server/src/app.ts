@@ -4,6 +4,7 @@ import { connect } from './db';
 import userRouter from './routes/user';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import activityRouter from './routes/activity';
 
 const app = express();
 
@@ -23,6 +24,7 @@ app.use(
 app.use(cookieParser());
 
 app.use('/user', userRouter);
+app.use('/activity', activityRouter);
 
 // Read PORT/HOST (these are defined in .env as PORT and HOST). Provide sensible defaults.
 const SERVER_PORT = Number(process.env.PORT) || 8000;
