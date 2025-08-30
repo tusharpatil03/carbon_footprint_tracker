@@ -3,18 +3,64 @@
   margin: 0 auto;
 }
 
-.stats-card {
+.stat-card {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   border: none;
+  overflow: hidden;
 }
 
-.stats-card:hover {
+.stat-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
-.stats-card i {
-  opacity: 0.8;
+.stat-card .icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.stat-card i {
+  opacity: 0.9;
+  color: white;
+}
+
+.stat-value {
+  font-size: 2.5rem;
+  font-weight: 600;
+  color: white;
+  margin: 0;
+}
+
+.stat-label {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.9);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.bg-gradient {
+  background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+}
+
+.bg-primary-gradient {
+  background: linear-gradient(135deg, #6f42c1 0%, #4e2c8e 100%);
+}
+
+.bg-success-gradient {
+  background: linear-gradient(135deg, #1cc88a 0%, #13855c 100%);
+}
+
+.bg-info-gradient {
+  background: linear-gradient(135deg, #36b9cc 0%, #258391 100%);
+}
+
+.bg-warning-gradient {
+  background: linear-gradient(135deg, #f6c23e 0%, #dda20a 100%);
 }
 
 .calculation-item {

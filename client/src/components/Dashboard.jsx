@@ -29,10 +29,15 @@ function Dashboard({ onNavigate }) {
   };
 
   const calculateProgress = () => {
-    if (historyData.length < 2) return 0;
-    const first = historyData[0].total;
+    if (historyData.length === 0) return 0;
+    if (historyData.length === 1) return 'N/A';
+    
+    // Get the highest value as baseline
+    const baseline = Math.max(...historyData.map(h => h.total));
     const latest = historyData[historyData.length - 1].total;
-    return ((first - latest) / first * 100).toFixed(1);
+    
+    const reduction = ((baseline - latest) / baseline * 100);
+    return reduction > 0 ? reduction.toFixed(1) : 0;
   };
 
   const getAverageEmissions = () => {
@@ -84,40 +89,52 @@ function Dashboard({ onNavigate }) {
           </div>
 
           {/* Quick Stats */}
-          <div className="row mb-4">
+          <div className="row g-3 mb-4">
             <div className="col-md-3">
-              <div className="card bg-primary text-white text-center">
-                <div className="card-body">
-                  <i className="bi bi-graph-down fs-1 mb-2"></i>
-                  <h4>{calculateProgress()}%</h4>
-                  <p className="mb-0">Reduction Achieved</p>
+              <div className="card stat-card bg-primary-gradient shadow h-100">
+                <div className="card-body d-flex flex-column align-items-center justify-content-center p-4">
+                  <div className="icon-wrapper mb-3">
+                    <i className="bi bi-graph-down display-5 text-white"></i>
+                  </div>
+                  <h3 className="stat-value mb-2">
+                    {calculateProgress() === 'N/A' ? 'N/A' : `${calculateProgress()}%`}
+                  </h3>
+                  <p className="stat-label mb-0">
+                    {historyData.length < 2 ? 'Start Tracking' : 'Reduction Achieved'}
+                  </p>
                 </div>
               </div>
             </div>
             <div className="col-md-3">
-              <div className="card bg-success text-white text-center">
-                <div className="card-body">
-                  <i className="bi bi-calendar-check fs-1 mb-2"></i>
-                  <h4>{historyData.length}</h4>
-                  <p className="mb-0">Calculations Done</p>
+              <div className="card stat-card bg-success-gradient shadow h-100">
+                <div className="card-body d-flex flex-column align-items-center justify-content-center p-4">
+                  <div className="icon-wrapper mb-3">
+                    <i className="bi bi-calendar-check display-5"></i>
+                  </div>
+                  <h3 className="stat-value mb-2">{historyData.length}</h3>
+                  <p className="stat-label mb-0">Calculations Done</p>
                 </div>
               </div>
             </div>
             <div className="col-md-3">
-              <div className="card bg-info text-white text-center">
-                <div className="card-body">
-                  <i className="bi bi-target fs-1 mb-2"></i>
-                  <h4>{getAverageEmissions()}</h4>
-                  <p className="mb-0">Average (kg CO₂)</p>
+              <div className="card stat-card bg-info-gradient shadow h-100">
+                <div className="card-body d-flex flex-column align-items-center justify-content-center p-4">
+                  <div className="icon-wrapper mb-3">
+                    <i className="bi bi-target display-5"></i>
+                  </div>
+                  <h3 className="stat-value mb-2">{getAverageEmissions()}</h3>
+                  <p className="stat-label mb-0">Average (kg CO₂)</p>
                 </div>
               </div>
             </div>
             <div className="col-md-3">
-              <div className="card bg-warning text-white text-center">
-                <div className="card-body">
-                  <i className="bi bi-trophy fs-1 mb-2"></i>
-                  <h4>{getBestMonth()}</h4>
-                  <p className="mb-0">Best Month (kg CO₂)</p>
+              <div className="card stat-card bg-warning-gradient shadow h-100">
+                <div className="card-body d-flex flex-column align-items-center justify-content-center p-4">
+                  <div className="icon-wrapper mb-3">
+                    <i className="bi bi-trophy display-5"></i>
+                  </div>
+                  <h3 className="stat-value mb-2">{getBestMonth()}</h3>
+                  <p className="stat-label mb-0">Best Month (kg CO₂)</p>
                 </div>
               </div>
             </div>
