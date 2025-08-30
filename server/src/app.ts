@@ -10,21 +10,17 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// app.use(
-//   cors({
-//     origin: '*',
-//     credentials: true,
-//   }),
-// );
+// Allow a specific origin when using credentials (cookies). Using '*' breaks Access-Control-Allow-Credentials.
+const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || 'http://localhost:5173';
+console.log('CORS allowed origin:', CLIENT_ORIGIN);
+app.use(
+  cors({
+    origin: CLIENT_ORIGIN,
+    credentials: true,
+  }),
+);
 
 app.use(cookieParser());
-
-app.get('/hello', (req: Request, res: Response) => {
-  res.json({
-    message: 'Hello',
-    status: 200,
-  });
-});
 
 app.use('/user', userRouter);
 

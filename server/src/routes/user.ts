@@ -6,8 +6,6 @@ import { signup } from "../controllers/user/signup";
 
 const router = Router();
 
-router.get("/", userRoute);
-
 router.get("/recomendation", recomendation);
 
 router.post("/signup", signup);

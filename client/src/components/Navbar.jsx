@@ -1,101 +1,98 @@
-import { useState } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
 
-function Navbar({ onPageChange, currentPage }) {
-  const handleNavClick = (page) => {
-    onPageChange(page);
+function Navbar({ onLogout }) {
+  const navigate = useNavigate();
+  const isAuth = !!(localStorage.getItem('accessToken') || localStorage.getItem('currentUser'));
+
+  const handleLogout = () => {
+    if (onLogout) onLogout();
+    else {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('currentUser');
+      navigate('/login');
+    }
   };
 
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-success shadow-sm">
       <div className="container">
-        {/* Brand */}
-        <a 
-          className="navbar-brand d-flex align-items-center" 
-          href="#dashboard"
-          onClick={() => handleNavClick('dashboard')}
-        >
+        <NavLink to="/" className="navbar-brand d-flex align-items-center">
           <span className="fs-3 me-2">🌱</span>
           <span className="fw-bold fs-4">CarbonTracker</span>
-        </a>
+        </NavLink>
 
-        {/* Mobile Toggle Button */}
-        <button 
-          className="navbar-toggler" 
-          type="button" 
-          data-bs-toggle="collapse" 
-          data-bs-target="#navbarNav" 
-          aria-controls="navbarNav" 
-          aria-expanded="false" 
+        <button
+          className="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
           aria-label="Toggle navigation"
         >
           <span className="navbar-toggler-icon"></span>
         </button>
 
-        {/* Navigation Menu */}
         <div className="collapse navbar-collapse" id="navbarNav">
           <ul className="navbar-nav me-auto mb-2 mb-lg-0">
             <li className="nav-item">
-              <a 
-                className={`nav-link ${currentPage === 'dashboard' ? 'active fw-semibold' : ''}`} 
-                href="#dashboard"
-                onClick={() => handleNavClick('dashboard')}
-              >
+              <NavLink to="/" className={({ isActive }) => `nav-link ${isActive ? 'active fw-semibold' : ''}`}>
                 <i className="bi bi-speedometer2 me-1"></i>
                 Dashboard
-              </a>
+              </NavLink>
             </li>
             <li className="nav-item">
-              <a 
-                className={`nav-link ${currentPage === 'activities' ? 'active fw-semibold' : ''}`} 
-                href="#activities"
-                onClick={() => handleNavClick('activities')}
-              >
+              <NavLink to="/activities" className={({ isActive }) => `nav-link ${isActive ? 'active fw-semibold' : ''}`}>
                 <i className="bi bi-activity me-1"></i>
                 Activities
-              </a>
+              </NavLink>
             </li>
             <li className="nav-item">
-              <a 
-                className={`nav-link ${currentPage === 'calculator' ? 'active fw-semibold' : ''}`} 
-                href="#calculator"
-                onClick={() => handleNavClick('calculator')}
-              >
+              <NavLink to="/calculator" className={({ isActive }) => `nav-link ${isActive ? 'active fw-semibold' : ''}`}>
                 <i className="bi bi-calculator me-1"></i>
                 Calculator
-              </a>
+              </NavLink>
             </li>
             <li className="nav-item">
-              <a 
-                className={`nav-link ${currentPage === 'history' ? 'active fw-semibold' : ''}`} 
-                href="#history"
-                onClick={() => handleNavClick('history')}
-              >
+              <NavLink to="/history" className={({ isActive }) => `nav-link ${isActive ? 'active fw-semibold' : ''}`}>
                 <i className="bi bi-clock-history me-1"></i>
                 History
-              </a>
+              </NavLink>
             </li>
             <li className="nav-item">
-              <a 
-                className={`nav-link ${currentPage === 'goals' ? 'active fw-semibold' : ''}`} 
-                href="#goals"
-                onClick={() => handleNavClick('goals')}
-              >
+              <NavLink to="/goals" className={({ isActive }) => `nav-link ${isActive ? 'active fw-semibold' : ''}`}>
                 <i className="bi bi-target me-1"></i>
                 Goals
-              </a>
+              </NavLink>
             </li>
           </ul>
 
-          {/* Action Buttons */}
           <div className="d-flex gap-2">
             <button className="btn btn-light btn-sm fw-semibold">
               <i className="bi bi-plus-circle me-1"></i>
               Add Activity
             </button>
-            <button className="btn btn-outline-light btn-sm">
-              <i className="bi bi-person-circle me-1"></i>
-              Profile
-            </button>
+
+            {isAuth ? (
+              <>
+                <button className="btn btn-outline-light btn-sm me-2" onClick={() => navigate('/profile')}>
+                  <i className="bi bi-person-circle me-1"></i>
+                  Profile
+                </button>
+                <button className="btn btn-danger btn-sm" onClick={handleLogout}>
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <button className="btn btn-outline-light btn-sm me-2" onClick={() => navigate('/login')}>
+                  Login
+                </button>
+                <button className="btn btn-light btn-sm" onClick={() => navigate('/signup')}>
+                  Sign Up
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>
