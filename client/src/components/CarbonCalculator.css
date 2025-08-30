@@ -1,0 +1,81 @@
+.calculator-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.tab-content {
+  min-height: 300px;
+}
+
+.nav-tabs .nav-link {
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: #6c757d;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.nav-tabs .nav-link:hover {
+  border-bottom-color: #28a745;
+  color: #28a745;
+}
+
+.nav-tabs .nav-link.active {
+  border-bottom-color: #28a745;
+  color: #28a745;
+  background: none;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: #28a745;
+  box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.btn-success:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.results-card {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: none;
+}
+
+.emissions-badge {
+  font-size: 1.1rem;
+  padding: 0.5rem 1rem;
+}
+
+.tips-section {
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 10px;
+  border-left: 4px solid #28a745;
+}
+
+.tips-section ul li {
+  padding: 0.25rem 0;
+  font-size: 0.95rem;
+}
+
+@media (max-width: 768px) {
+  .calculator-container {
+    margin: 0 10px;
+  }
+  
+  .nav-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+  
+  .nav-tabs .nav-link {
+    white-space: nowrap;
+    font-size: 0.9rem;
+  }
+}
