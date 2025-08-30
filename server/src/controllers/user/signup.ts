@@ -10,6 +10,7 @@ import {
 export type SignupInfo = {
     email: string;
     password: string;
+    name: string;
 };
 
 export const signup = async (req: Request, res: Response): Promise<void> => {
@@ -32,6 +33,7 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
         email: data.email,
         password: hashedPassword,
         salt: salt,
+        name: data.name
     })
     if (!user) {
         throw new HandleError('User Not Exist', 'Unable to Create User', 500);
