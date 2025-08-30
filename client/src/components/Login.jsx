@@ -1,24 +1,25 @@
-import { useState } from 'react';
-import './Auth.css';
+import { useState } from "react";
+import "./Auth.css";
+import axios from "axios";
 
 function Login({ onSwitchToSignup, onLoginSuccess }) {
   const [formData, setFormData] = useState({
-    email: '',
-    password: ''
+    email: "",
+    password: "",
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
 
   const handleInputChange = (field, value) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
     // Clear error when user starts typing
     if (errors[field]) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        [field]: ''
+        [field]: "",
       }));
     }
   };
@@ -27,15 +28,15 @@ function Login({ onSwitchToSignup, onLoginSuccess }) {
     const newErrors = {};
 
     if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
+      newErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid';
+      newErrors.email = "Email is invalid";
     }
 
     if (!formData.password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = "Password is required";
     } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+      newErrors.password = "Password must be at least 6 characters";
     }
 
     setErrors(newErrors);
@@ -44,7 +45,7 @@ function Login({ onSwitchToSignup, onLoginSuccess }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -52,27 +53,32 @@ function Login({ onSwitchToSignup, onLoginSuccess }) {
     setIsLoading(true);
 
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const res = await axios.post(
+        "http://localhost:8000/user/login",
+        {
+          email: formData.email,
+          password: formData.password,
+        },
+        { withCredentials: true }
+      );
 
-      // Get users from localStorage
-      const users = JSON.parse(localStorage.getItem('users') || '[]');
-      const user = users.find(u => u.email === formData.email && u.password === formData.password);
+      // axios wraps the response body in res.data
+      const data = res.data || {};
 
-      if (user) {
-        // Store user session
-        localStorage.setItem('currentUser', JSON.stringify({
-          id: user.id,
-          email: user.email,
-          name: user.name
-        }));
-        
+      if (data.accessToken) {
+        // Save token and a minimal currentUser object returned from server or built here
+        localStorage.setItem("accessToken", data.accessToken);
+        // If server returns user info in payload, use it. Otherwise store email as currentUser.
+        const currentUser = data.user || { email: formData.email };
+        localStorage.setItem("currentUser", JSON.stringify(currentUser));
+
         onLoginSuccess();
-      } else {
-        setErrors({ general: 'Invalid email or password' });
+        return;
       }
+
+      setErrors({ general: data.message || "Invalid email or password" });
     } catch (error) {
-      setErrors({ general: 'Login failed. Please try again.' });
+      setErrors({ general: "Login failed. Please try again." });
     } finally {
       setIsLoading(false);
     }
@@ -101,9 +107,11 @@ function Login({ onSwitchToSignup, onLoginSuccess }) {
                   <label className="form-label">Email Address</label>
                   <input
                     type="email"
-                    className={`form-control ${errors.email ? 'is-invalid' : ''}`}
+                    className={`form-control ${
+                      errors.email ? "is-invalid" : ""
+                    }`}
                     value={formData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
+                    onChange={(e) => handleInputChange("email", e.target.value)}
                     placeholder="Enter your email"
                   />
                   {errors.email && (
@@ -115,9 +123,13 @@ function Login({ onSwitchToSignup, onLoginSuccess }) {
                   <label className="form-label">Password</label>
                   <input
                     type="password"
-                    className={`form-control ${errors.password ? 'is-invalid' : ''}`}
+                    className={`form-control ${
+                      errors.password ? "is-invalid" : ""
+                    }`}
                     value={formData.password}
-                    onChange={(e) => handleInputChange('password', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("password", e.target.value)
+                    }
                     placeholder="Enter your password"
                   />
                   {errors.password && (
@@ -126,7 +138,11 @@ function Login({ onSwitchToSignup, onLoginSuccess }) {
                 </div>
 
                 <div className="mb-3 form-check">
-                  <input type="checkbox" className="form-check-input" id="rememberMe" />
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    id="rememberMe"
+                  />
                   <label className="form-check-label" htmlFor="rememberMe">
                     Remember me
                   </label>
@@ -139,7 +155,11 @@ function Login({ onSwitchToSignup, onLoginSuccess }) {
                 >
                   {isLoading ? (
                     <>
-                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                      <span
+                        className="spinner-border spinner-border-sm me-2"
+                        role="status"
+                        aria-hidden="true"
+                      ></span>
                       Signing in...
                     </>
                   ) : (
@@ -151,13 +171,15 @@ function Login({ onSwitchToSignup, onLoginSuccess }) {
                 </button>
 
                 <div className="text-center">
-                  <a href="#" className="text-decoration-none">Forgot password?</a>
+                  <a href="#" className="text-decoration-none">
+                    Forgot password?
+                  </a>
                 </div>
               </form>
             </div>
             <div className="card-footer text-center">
               <p className="mb-0">
-                Don't have an account?{' '}
+                Don't have an account?{" "}
                 <button
                   className="btn btn-link text-decoration-none p-0"
                   onClick={onSwitchToSignup}

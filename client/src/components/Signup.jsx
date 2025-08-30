@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import './Auth.css';
+import axios from 'axios';
 
 function Signup({ onSwitchToLogin, onSignupSuccess }) {
   const [formData, setFormData] = useState({
@@ -66,39 +67,30 @@ function Signup({ onSwitchToLogin, onSignupSuccess }) {
     setIsLoading(true);
 
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const res = await axios.post(
+        'http://localhost:8000/user/signup',
+        {
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+        },
+        { withCredentials: true }
+      );
 
-      // Get existing users from localStorage
-      const users = JSON.parse(localStorage.getItem('users') || '[]');
-      
-      // Check if email already exists
-      if (users.find(u => u.email === formData.email)) {
-        setErrors({ general: 'Email already registered. Please use a different email.' });
+      console.log("component loaded");
+
+      console.log(res);
+
+      const data = res.data || {};
+      if (data.accessToken) {
+        localStorage.setItem('accessToken', data.accessToken);
+        const currentUser = data.user || { email: formData.email, name: formData.name };
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        onSignupSuccess();
         return;
       }
 
-      // Create new user
-      const newUser = {
-        id: Date.now(),
-        name: formData.name.trim(),
-        email: formData.email.trim(),
-        password: formData.password,
-        createdAt: new Date().toISOString()
-      };
-
-      // Add user to localStorage
-      users.push(newUser);
-      localStorage.setItem('users', JSON.stringify(users));
-
-      // Store user session
-      localStorage.setItem('currentUser', JSON.stringify({
-        id: newUser.id,
-        email: newUser.email,
-        name: newUser.name
-      }));
-
-      onSignupSuccess();
+      setErrors({ general: data.message || 'Signup failed' });
     } catch (error) {
       setErrors({ general: 'Signup failed. Please try again.' });
     } finally {
