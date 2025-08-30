@@ -50,6 +50,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       message: 'login success',
       accessToken: accessToken,
     });
+    
   } catch (e: unknown | HandleError) {
     console.log(e);
     res.status(500).json({
