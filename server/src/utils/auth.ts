@@ -5,6 +5,8 @@ export interface InterfaceAccessTokenPayload {
   userId: string;
   email: string;
 }
+
+
 export const generateAccessToken = (
   payload: InterfaceAccessTokenPayload,
 ): string => {
